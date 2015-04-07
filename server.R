@@ -29,7 +29,7 @@ shinyServer(function(input, output, session) {
       if(is.null(g))
         return(NULL)
       
-      loadPlotData(g, rValues$rumorSource, input$size)
+      loadPlotData_Exp(g, rValues$rumorSource, input$size)
     })
     
     # dynamic UI

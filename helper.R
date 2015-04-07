@@ -26,7 +26,7 @@ loadGraph <- function( file )
   return (graph)
 }
 
-loadPlotData <- function( g, src, size )
+loadPlotData_Thry <- function( g, src, size )
 {
   inf <- vector(mode="numeric", length=size)
   inf[1] <- src
@@ -37,6 +37,7 @@ loadPlotData <- function( g, src, size )
   {
     for( i in 2:size )
     {
+      # special handle of "sample" function
       if(length(boundary) > 1)
         victim <- sample(boundary, 1)
       else
@@ -45,6 +46,56 @@ loadPlotData <- function( g, src, size )
       inf[i] <- victim
       neib <- neighbors(g, victim)
       uNeib <- neib[!neib %in% inf]
+      boundary <- append(boundary, uNeib)
+    }
+  }
+  
+  rtn <- list()
+  rtn$g <- g
+  rtn$inf <- inf
+  
+  return (rtn)
+}
+
+loadPlotData_Exp <- function( g, src, size )
+{
+  inf <- vector(mode="numeric", length=size)
+  inf[1] <- src
+  
+  # index of timeout and boundary should keep consistent
+  boundary <- neighbors(g, src) 
+  
+  timeout <- vector(mode="numeric",length=length(boundary))
+  timeout <- rexp(length(boundary))
+  cntTime <- 0
+  
+  if( size > 1 )
+  {
+    for( i in 2:size )
+    {
+      if(min(timeout)==0)
+        print("o found!")
+      if(min(timeout) <0 )
+        print("fuck you off bitch")
+      
+      # only take the first one if there are multiple minimum
+      victim <- boundary[which.min(timeout)]
+      timeout <- timeout - min(timeout)
+
+      vIdx <- which(boundary==victim)
+      boundary <- boundary[-vIdx]
+      timeout <- timeout[-vIdx]
+      
+      inf[i] <- victim
+      
+      neib <- neighbors(g, victim)
+      iNeib <- neib[neib %in% inf]
+      uNeib <- setdiff(neib, iNeib)
+      
+      updateIdx <- which(boundary %in% iNeib)
+      timeout[updateIdx] <- pmin.int(timeout[updateIdx],rexp(length(updateIdx)))
+      
+      timeout <- append(timeout, rexp(length(uNeib)))
       boundary <- append(boundary, uNeib)
     }
   }
